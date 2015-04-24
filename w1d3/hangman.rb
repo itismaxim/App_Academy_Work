@@ -1,28 +1,43 @@
 require 'set'
 
+# If I wanted to implement losing, the number of mistakes should be
+# how I determine a loss. Maybe 5? Maybe 7?
+
 class Hangman
   def initialize(guessing_player, checking_player)
     @guessing_player = guessing_player
     @checking_player = checking_player
-    @won = false
-    @lost = false
+    #@won = false
+    #@lost = false
   end
 
   def run
-    secret_length = @checking_player.pick_secret_word
-    @guessing_player.receive_secret_length(secret_length)
+	checker_picks_word
     until game_won?
-      guess = @guessing_player.guess
-      response = @checking_player.check_guess(guess)
-      @guessing_player.handle_guess_response(response)
+      take_turn
     end
-    puts
-    puts "The word was '#{@guessing_player.word}'."
-    puts "Congratulations, you guessed it!"
+	render_victory_message
   end
 
   def game_won?
     !@guessing_player.word.include? '_'
+  end
+  
+  def take_turn
+	guess = @guessing_player.guess
+      response = @checking_player.check_guess(guess)
+      @guessing_player.handle_guess_response(response)
+  end
+  
+  def checker_picks_word
+	secret_length = @checking_player.pick_secret_word
+    @guessing_player.receive_secret_length(secret_length)
+  end
+  
+  def render_victory_message
+	puts
+    puts "The word was '#{@guessing_player.word}'."
+    puts "Congratulations, you guessed it!"
   end
 end
 
@@ -62,7 +77,13 @@ class HumanPlayer < Player
 
   def pick_secret_word
     print "Please enter the LENGTH of your secret word > "
-    Integer(gets)
+	
+	begin
+      Integer(gets.chomp)
+    rescue ArgumentError
+      print "Enter a valid length! >"
+      retry
+    end
   end
 
   def make_guess
